@@ -1,0 +1,9 @@
+{
+  "navigationBarTitleText": "控制台",
+  "usingComponents": {
+    "u-popup": "/uview-ui/components/u-popup/u-popup",
+    "u-loading": "/uview-ui/components/u-loading/u-loading",
+    "u-swipe-action": "/uview-ui/components/u-swipe-action/u-swipe-action",
+    "u-button": "/uview-ui/components/u-button/u-button"
+  }
+}
