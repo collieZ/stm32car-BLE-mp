@@ -1,0 +1,23 @@
+{
+  "name": "balance_car",
+  "version": "1.0.0",
+  "description": "用于连接低功耗蓝牙控制stm32小车的小程序",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hentaizhou/stm32car-BLE-mp.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hentaizhou/stm32car-BLE-mp/issues"
+  },
+  "homepage": "https://github.com/hentaizhou/stm32car-BLE-mp#readme",
+  "dependencies": {
+    "msgpack-lite": "^0.1.26"
+  }
+}

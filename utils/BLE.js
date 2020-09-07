@@ -62,6 +62,7 @@ class BLE {
 	 * @description 适配器初始完成后，开始蓝牙设备搜寻
 	 * */
 	startBluetoothDevicesDiscovery() {
+		console.log('souxun BLE==>', this._discoveryStarted)
 		if (this._discoveryStarted) {
 			return
 		}
@@ -81,6 +82,7 @@ class BLE {
 	 * */
 	stopBluetoothDevicesDiscovery() {
 		uni.stopBluetoothDevicesDiscovery()
+		this._discoveryStarted = false
 	}
 
 	/**
@@ -144,6 +146,7 @@ class BLE {
 			deviceId: store.state.deviceId
 		})
 		store.commit('RESET_BLE_STATUS')
+		uni.$emit('disconnect')	// 断开蓝牙事件
 	}
 
 	/**

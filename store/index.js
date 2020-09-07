@@ -32,6 +32,7 @@ const store = new Vuex.Store({
 			state.canWrite = false
 			state.connected = false
 			state.chs = []
+			state.devices = []
 		}
 	}
 })

@@ -38,6 +38,7 @@
 </template>
 
 <script>
+const msgpack = require("msgpack-lite");
 import { BLEentity } from '../../utils/BLE.js';
 import { mapState } from 'vuex';
 export default {
@@ -57,6 +58,7 @@ export default {
 	},
 	onLoad() {
 		this.initBLECallback();
+		console.log(msgpack.encode({"name": "zzw"}), 'json!!')
 	},
 	beforeDestroy() {
 		console.log('卸载页面');
