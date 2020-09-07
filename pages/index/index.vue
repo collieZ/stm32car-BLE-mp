@@ -29,14 +29,14 @@
 				</view>
 			</view>
 		</u-popup>
-		<u-button :loading="isSearching" :disabled="canCloseBLEAdapter" @click="connectBLE">链接蓝牙</u-button>
-		<u-button :disabled="!canCloseBLEAdapter" @click="closeBLEadapter">关闭蓝牙适配器</u-button>
+		<u-button v-if="!BLEEntity" @click="initBLE">初始化蓝牙</u-button>
+		<u-button v-show="canSearchBle" :loading="isSearching" :disabled="canCloseBLEAdapterSearch" @click="searchBLE">搜寻蓝牙</u-button>
+		<u-button :disabled="!canCloseBLEAdapterSearch" @click="closeBLEAdapterSearch">停止蓝牙搜索</u-button>
 		<u-button @click="showPopup = true">弹出蓝牙列表</u-button>
 		<!-- <navigator url="../my/index">my页面</navigator> -->
 	</view>
 </template>
 
-<!-- bug? 组件没问题 -->
 <script>
 import { BLEentity } from '../../utils/BLE.js';
 import { mapState } from 'vuex';
@@ -46,11 +46,17 @@ export default {
 			BLEEntity: null,
 			isSearching: false,
 			showPopup: false,
+			canCloseBLEAdapterSearch: false, // 是否能关闭蓝牙适配器搜寻
 			canCloseBLEAdapter: false, // 是否能关闭蓝牙适配器
+			canSearchBle: true, // 是否可以搜寻蓝牙
 			currentDeviceId: '', // 当前连接的蓝牙设备id
+			// currentConnectedIdx: 0,	// 当前连接蓝牙的序号
 			currentExpandDevId: '', // 当前展开的蓝牙设备ID
-			list: []  // 蓝牙列表
+			list: [] // 蓝牙列表
 		};
+	},
+	onLoad() {
+		this.initBLECallback();
 	},
 	beforeDestroy() {
 		console.log('卸载页面');
@@ -91,50 +97,93 @@ export default {
 		}
 	},
 	methods: {
-		connectBLE() {
+		// 初始化蓝牙适配器并搜寻附近蓝牙设备
+		initBLE() {
 			this.isSearching = true;
 			this.BLEEntity = BLEentity;
 			if (this.BLEEntity) {
-				this.BLEEntity.init(); // 初始化蓝牙适配器并搜寻附近蓝牙设备
-				uni.$on('BLEconnect', data => {
-					// 弹出列表框显示搜寻的蓝牙设备 (loading...效果)
-					this.isSearching = false;
-					this.canCloseBLEAdapter = true;
-					this.showPopup = true;
-				});
+				this.BLEEntity.init();
 			}
 		},
-		closeBLEadapter() {
-			if (this.BLEEntity) {
-				this.BLEEntity.closeBluetoothAdapter();
-				this.canCloseBLEAdapter = false;
-			}
-		},
-		SAclick(index, item) {
-			console.log(index, item, 'click item');
-			uni.$on('connected', () => {
-				this.list[index].show = false;
+		initBLECallback() {
+			uni.$on('BLEconnect', data => {
+				// 弹出列表框显示搜寻的蓝牙设备 (loading...效果)
+				this.isSearching = false;
+				this.canCloseBLEAdapterSearch = true;
+				this.showPopup = true;
+			});
+			uni.$on('connected', async () => {
+				this.canSearchBle = false;
 				for (let item of this.list) {
 					if (item.deviceId === this.deviceId && this.connected) {
+						console.log('连接上蓝牙');
+						item.show = false;
 						item.SAoptions[0] = {
 							text: '断开',
 							style: {
 								backgroundColor: '#dd524d'
 							}
 						};
+						break;
 					}
-					break;
 				}
 				this.list = this.list.filter(item => item.deviceId === this.deviceId);
-				this.$u.toast(`连接成功`);
+				this.$u.toast(`连接成功!`);
 				this.isSearching = false;
-				this.canCloseBLEAdapter = false;
+				this.canCloseBLEAdapterSearch = false;
 				this.showPopup = false;
 			});
+			uni.$on('disconnect', () => {
+				this.$u.toast(`已断开连接!`);
+				this.BLEEntity.closeBLEConnection();
+				this.canSearchBle = true;
+				this.showPopup = false;
+			});
+		},
+		searchBLE() {
+			if (this.BLEEntity) {
+				this.isSearching = true;
+				this.BLEEntity.startBluetoothDevicesDiscovery();
+			}
+		},
+		closeBLEAdapterSearch() {
+			if (this.BLEEntity) {
+				this.BLEEntity.stopBluetoothDevicesDiscovery();
+				this.canCloseBLEAdapterSearch = false;
+			}
+		},
+		SAclick(index, item) {
+			// uni.$on('connected', () => {
+			// 	this.canSearchBle = false;
+			// 	this.list[index].show = false;
+			// 	for (let item of this.list) {
+			// 		if (item.deviceId === this.deviceId && this.connected) {
+			// 			item.SAoptions[0] = {
+			// 				text: '断开',
+			// 				style: {
+			// 					backgroundColor: '#dd524d'
+			// 				}
+			// 			};
+			// 		}
+			// 		break;
+			// 	}
+			// 	this.list = this.list.filter(item => item.deviceId === this.deviceId);
+			// 	this.$u.toast(`连接成功!`);
+			// 	this.isSearching = false;
+			// 	this.canCloseBLEAdapterSearch = false;
+			// 	this.showPopup = false;
+			// });
+			// uni.$on('disconnect', () => {
+			// 	this.$u.toast(`已断开连接!`);
+			// 	this.BLEEntity.startBluetoothDevicesDiscovery();
+			// 	this.canSearchBle = true;
+			// 	this.showPopup = false;
+			// });
+			this.currentConnectedIdx = index;
 			if (item.SAoptions[0].text === '连接') {
 				this.BLEEntity.createBLEConnection(item); // 建立蓝牙连接
 			} else {
-				this.BLEEntity.closeBLEConnection()	// 关闭蓝牙连接
+				this.BLEEntity.closeBLEConnection(); // 关闭蓝牙连接
 			}
 		},
 		// 如果打开一个的时候，不需要关闭其他，则无需实现本方法
